@@ -11,3 +11,8 @@ export enum HttpMessage {
   NOT_FOUND = 'Not Found',
   INTERNAL_SERVER_ERROR = 'Internal Server Error'
 }
+
+export enum Role {
+  User = 'user',
+  Admin = 'admin'
+}

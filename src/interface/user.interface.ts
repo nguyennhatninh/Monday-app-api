@@ -1,5 +1,3 @@
-export interface User {
-  username: string;
-  email: string;
-  password: string;
+export interface UserLoginRes {
+  access_token: string;
 }

@@ -1,10 +1,20 @@
+import { Role } from 'src/global/globalEnum';
+
 export class InfoLoginDto {
-  username: string;
+  email: string;
   password: string;
 }
 
 export class InfoRegisterDto {
-  username: string;
+  name: string;
   email: string;
   password: string;
+  roles?: Role[];
+}
+
+export class InfoUpdatedDto {
+  name?: string;
+  email?: string;
+  password?: string;
+  roles?: Role[];
 }
