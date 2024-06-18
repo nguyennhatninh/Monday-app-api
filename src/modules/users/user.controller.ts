@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Res, Next, Get, UseGuards, Param, Patch } from '@nestjs/common';
+import { Body, Controller, Post, Res, Next, Get, UseGuards, Param, Patch, Req } from '@nestjs/common';
 import { UserService } from './user.service';
 import { Response, NextFunction } from 'express';
 import { InfoRegisterDto, InfoUpdatedDto } from '../../dto/user.dto';
@@ -15,24 +15,11 @@ export class UserController {
   @Post('register')
   async register(@Body() infoRegisterDto: InfoRegisterDto, @Res() res: Response, @Next() next: NextFunction): Promise<void> {
     try {
-      const user = await this.userService.create(infoRegisterDto).catch((e) => {
-        throw e.message;
-      });
+      const user = await this.userService.create(infoRegisterDto);
       res.status(HttpStatusCode.OK).json(new DataResponse(user, HttpStatusCode.OK, HttpMessage.SUCCESS));
     } catch (e) {
-      res.json(new DataResponse<null>(e, HttpStatusCode.NOT_FOUND, HttpMessage.NOT_FOUND));
+      res.json(new DataResponse<string>(e.message, HttpStatusCode.NOT_FOUND, HttpMessage.NOT_FOUND));
       next(e);
-    }
-  }
-
-  @Patch(':id')
-  async updated(@Body() infoUpdatedDto: InfoUpdatedDto, @Param('id') id: string, @Res() res: Response, @Next() next: NextFunction): Promise<void> {
-    try {
-      const user = await this.userService.update(id, infoUpdatedDto);
-      res.status(HttpStatusCode.OK).json(new DataResponse(user, HttpStatusCode.OK, HttpMessage.SUCCESS));
-    } catch (e) {
-      next(e);
-      res.json(new DataResponse<null>(null, HttpStatusCode.NOT_FOUND, HttpMessage.NOT_FOUND));
     }
   }
 
@@ -50,10 +37,34 @@ export class UserController {
   }
 
   @UseGuards(AuthGuard)
+  @Get('me')
+  async getMe(@Req() req: Request, @Res() res: Response, @Next() next: NextFunction): Promise<void> {
+    const id = req['user'].id;
+
+    try {
+      const user = await this.userService.getUser(id);
+      res.status(HttpStatusCode.OK).json(new DataResponse(user, HttpStatusCode.OK, HttpMessage.SUCCESS));
+    } catch (e) {
+      res.json(new DataResponse<null>(null, HttpStatusCode.NOT_FOUND, HttpMessage.NOT_FOUND));
+      next(e);
+    }
+  }
+
+  @UseGuards(AuthGuard)
   @Get(':id')
   async getUser(@Param('id') id: string, @Res() res: Response, @Next() next: NextFunction): Promise<void> {
     try {
       const user = await this.userService.getUser(id);
+      res.status(HttpStatusCode.OK).json(new DataResponse(user, HttpStatusCode.OK, HttpMessage.SUCCESS));
+    } catch (e) {
+      res.json(new DataResponse<null>(null, HttpStatusCode.NOT_FOUND, HttpMessage.NOT_FOUND));
+      next(e);
+    }
+  }
+  @Patch(':id')
+  async updated(@Body() infoUpdatedDto: InfoUpdatedDto, @Param('id') id: string, @Res() res: Response, @Next() next: NextFunction): Promise<void> {
+    try {
+      const user = await this.userService.update(id, infoUpdatedDto);
       res.status(HttpStatusCode.OK).json(new DataResponse(user, HttpStatusCode.OK, HttpMessage.SUCCESS));
     } catch (e) {
       res.json(new DataResponse<null>(null, HttpStatusCode.NOT_FOUND, HttpMessage.NOT_FOUND));

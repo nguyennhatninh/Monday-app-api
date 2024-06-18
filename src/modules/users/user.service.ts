@@ -36,7 +36,7 @@ export class UserService {
   }
   async sendVerificationEmail(email: string) {
     const token = await this.jwtService.signAsync({ email });
-    const url = `http://localhost:3003/auth/verify-email?token=${token}`;
+    const url = `${process.env.BASE_URL}/auth/verify-email?token=${token}`;
     const logoUrl = 'https://cdn.monday.com/images/logos/monday_logo_icon.png';
 
     await this.mailerService.sendMail({

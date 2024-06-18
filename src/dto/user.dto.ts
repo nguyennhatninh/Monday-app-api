@@ -12,6 +12,11 @@ export class InfoRegisterDto {
   roles?: Role[];
 }
 
+export class InfoRegisterGoogleDto {
+  name: string;
+  email: string;
+}
+
 export class InfoUpdatedDto {
   name?: string;
   email?: string;
