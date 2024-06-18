@@ -7,6 +7,7 @@ import { HttpMessage, HttpStatusCode, Role } from 'src/global/globalEnum';
 import { AuthGuard } from 'src/guards/jwt-auth.guard';
 import { Roles } from 'src/decorators/roles.decorator';
 import { RolesGuard } from 'src/guards/roles.guard';
+import { User } from 'src/schemas/user.schema';
 
 @Controller('user')
 export class UserController {
@@ -15,7 +16,7 @@ export class UserController {
   @Post('register')
   async register(@Body() infoRegisterDto: InfoRegisterDto, @Res() res: Response, @Next() next: NextFunction): Promise<void> {
     try {
-      const user = await this.userService.create(infoRegisterDto);
+      const user: User = await this.userService.create(infoRegisterDto);
       res.status(HttpStatusCode.OK).json(new DataResponse(user, HttpStatusCode.OK, HttpMessage.SUCCESS));
     } catch (e) {
       res.json(new DataResponse<string>(e.message, HttpStatusCode.NOT_FOUND, HttpMessage.NOT_FOUND));
@@ -28,7 +29,7 @@ export class UserController {
   @Roles(Role.Admin)
   async getAllUser(@Res() res: Response, @Next() next: NextFunction): Promise<void> {
     try {
-      const userArr = await this.userService.getAll();
+      const userArr: User[] = await this.userService.getAll();
       res.status(HttpStatusCode.OK).json(new DataResponse(userArr, HttpStatusCode.OK, HttpMessage.SUCCESS));
     } catch (e) {
       res.json(new DataResponse<null>(null, HttpStatusCode.NOT_FOUND, HttpMessage.NOT_FOUND));
@@ -42,7 +43,7 @@ export class UserController {
     const id = req['user'].id;
 
     try {
-      const user = await this.userService.getUser(id);
+      const user: User = await this.userService.getUser(id);
       res.status(HttpStatusCode.OK).json(new DataResponse(user, HttpStatusCode.OK, HttpMessage.SUCCESS));
     } catch (e) {
       res.json(new DataResponse<null>(null, HttpStatusCode.NOT_FOUND, HttpMessage.NOT_FOUND));
@@ -54,7 +55,7 @@ export class UserController {
   @Get(':id')
   async getUser(@Param('id') id: string, @Res() res: Response, @Next() next: NextFunction): Promise<void> {
     try {
-      const user = await this.userService.getUser(id);
+      const user: User = await this.userService.getUser(id);
       res.status(HttpStatusCode.OK).json(new DataResponse(user, HttpStatusCode.OK, HttpMessage.SUCCESS));
     } catch (e) {
       res.json(new DataResponse<null>(null, HttpStatusCode.NOT_FOUND, HttpMessage.NOT_FOUND));
@@ -64,7 +65,7 @@ export class UserController {
   @Patch(':id')
   async updated(@Body() infoUpdatedDto: InfoUpdatedDto, @Param('id') id: string, @Res() res: Response, @Next() next: NextFunction): Promise<void> {
     try {
-      const user = await this.userService.update(id, infoUpdatedDto);
+      const user: User = await this.userService.update(id, infoUpdatedDto);
       res.status(HttpStatusCode.OK).json(new DataResponse(user, HttpStatusCode.OK, HttpMessage.SUCCESS));
     } catch (e) {
       res.json(new DataResponse<null>(null, HttpStatusCode.NOT_FOUND, HttpMessage.NOT_FOUND));
