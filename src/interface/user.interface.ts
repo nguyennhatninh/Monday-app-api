@@ -1,4 +1,4 @@
-import { User } from 'src/schemas/user.shema';
+import { User } from 'src/schemas/user.schema';
 
 export interface UserLoginRes {
   userInfo: User;
