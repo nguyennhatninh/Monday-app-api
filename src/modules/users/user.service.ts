@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { InfoRegisterDto } from 'src/dto/user.dto';
-import { User } from 'src/schemas/user.schema';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { MailerService } from '@nestjs-modules/mailer';
+import { User } from './schemas/user.schema';
 
 @Injectable()
 export class UserService {

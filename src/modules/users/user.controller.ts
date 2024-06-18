@@ -7,7 +7,7 @@ import { HttpMessage, HttpStatusCode, Role } from 'src/global/globalEnum';
 import { AuthGuard } from 'src/guards/jwt-auth.guard';
 import { Roles } from 'src/decorators/roles.decorator';
 import { RolesGuard } from 'src/guards/roles.guard';
-import { User } from 'src/schemas/user.schema';
+import { User } from './schemas/user.schema';
 
 @Controller('user')
 export class UserController {
