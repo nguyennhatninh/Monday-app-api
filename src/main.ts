@@ -1,14 +1,13 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-declare const module: any;
+import helmet from 'helmet';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  await app.listen(3003);
+  const app = await NestFactory.create(AppModule, { cors: true });
 
-  if (module.hot) {
-    module.hot.accept();
-    module.hot.dispose(() => app.close());
-  }
+  app.use(helmet());
+
+  await app.listen(process.env.PORT);
+  console.log(`Server is running on ${process.env.BASE_URL}`);
 }
 bootstrap();

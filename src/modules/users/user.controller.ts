@@ -1,23 +1,74 @@
-import { Body, Controller, Post, Res, Next } from '@nestjs/common';
+import { Body, Controller, Post, Res, Next, Get, UseGuards, Param, Patch, Req } from '@nestjs/common';
 import { UserService } from './user.service';
 import { Response, NextFunction } from 'express';
-import { InfoLoginDto } from '../../dto/user.dto';
+import { InfoRegisterDto, InfoUpdatedDto } from '../../dto/user.dto';
 import { DataResponse } from 'src/global/globalClass';
-import { HttpMessage, HttpStatusCode } from 'src/global/globalEnum';
-import { User } from 'src/interface/user.interface';
+import { HttpMessage, HttpStatusCode, Role } from 'src/global/globalEnum';
+import { AuthGuard } from 'src/guards/jwt-auth.guard';
+import { Roles } from 'src/decorators/roles.decorator';
+import { RolesGuard } from 'src/guards/roles.guard';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post('login')
-  async login(@Body() infoLogin: InfoLoginDto, @Res() res: Response, @Next() next: NextFunction): Promise<void> {
+  @Post('register')
+  async register(@Body() infoRegisterDto: InfoRegisterDto, @Res() res: Response, @Next() next: NextFunction): Promise<void> {
     try {
-      const result = this.userService.login(infoLogin);
-      res.status(HttpStatusCode.OK).json(new DataResponse<User>(result, HttpStatusCode.OK, HttpMessage.SUCCESS));
+      const user = await this.userService.create(infoRegisterDto);
+      res.status(HttpStatusCode.OK).json(new DataResponse(user, HttpStatusCode.OK, HttpMessage.SUCCESS));
     } catch (e) {
+      res.json(new DataResponse<string>(e.message, HttpStatusCode.NOT_FOUND, HttpMessage.NOT_FOUND));
       next(e);
+    }
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Get('all')
+  @Roles(Role.Admin)
+  async getAllUser(@Res() res: Response, @Next() next: NextFunction): Promise<void> {
+    try {
+      const userArr = await this.userService.getAll();
+      res.status(HttpStatusCode.OK).json(new DataResponse(userArr, HttpStatusCode.OK, HttpMessage.SUCCESS));
+    } catch (e) {
       res.json(new DataResponse<null>(null, HttpStatusCode.NOT_FOUND, HttpMessage.NOT_FOUND));
+      next(e);
+    }
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('me')
+  async getMe(@Req() req: Request, @Res() res: Response, @Next() next: NextFunction): Promise<void> {
+    const id = req['user'].id;
+
+    try {
+      const user = await this.userService.getUser(id);
+      res.status(HttpStatusCode.OK).json(new DataResponse(user, HttpStatusCode.OK, HttpMessage.SUCCESS));
+    } catch (e) {
+      res.json(new DataResponse<null>(null, HttpStatusCode.NOT_FOUND, HttpMessage.NOT_FOUND));
+      next(e);
+    }
+  }
+
+  @UseGuards(AuthGuard)
+  @Get(':id')
+  async getUser(@Param('id') id: string, @Res() res: Response, @Next() next: NextFunction): Promise<void> {
+    try {
+      const user = await this.userService.getUser(id);
+      res.status(HttpStatusCode.OK).json(new DataResponse(user, HttpStatusCode.OK, HttpMessage.SUCCESS));
+    } catch (e) {
+      res.json(new DataResponse<null>(null, HttpStatusCode.NOT_FOUND, HttpMessage.NOT_FOUND));
+      next(e);
+    }
+  }
+  @Patch(':id')
+  async updated(@Body() infoUpdatedDto: InfoUpdatedDto, @Param('id') id: string, @Res() res: Response, @Next() next: NextFunction): Promise<void> {
+    try {
+      const user = await this.userService.update(id, infoUpdatedDto);
+      res.status(HttpStatusCode.OK).json(new DataResponse(user, HttpStatusCode.OK, HttpMessage.SUCCESS));
+    } catch (e) {
+      res.json(new DataResponse<null>(null, HttpStatusCode.NOT_FOUND, HttpMessage.NOT_FOUND));
+      next(e);
     }
   }
 }
