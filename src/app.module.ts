@@ -3,7 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './modules/users/user.module';
 import { InjectConnection, MongooseModule } from '@nestjs/mongoose';
-import config from 'mongo.config';
+import config from '../mongo.config';
 import { Connection } from 'mongoose';
 import { AuthModule } from './modules/auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
