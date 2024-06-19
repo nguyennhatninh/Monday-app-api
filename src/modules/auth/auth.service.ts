@@ -2,12 +2,12 @@ import * as bcrypt from 'bcrypt';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../users/user.service';
-import { UserLoginRes } from 'src/interface/user.interface';
-import { InfoLoginDto } from 'src/dto/user.dto';
-import { User } from 'src/modules/users/schemas/user.schema';
+import { UserLoginRes } from '../../interface/user.interface';
+import { InfoLoginDto } from '../../dto/user.dto';
+import { User } from '../../schemas/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { firebaseAdmin } from 'src/firebase/firebase.config';
+import { firebaseAdmin } from '../../firebase/firebase.config';
 
 @Injectable()
 export class AuthService {

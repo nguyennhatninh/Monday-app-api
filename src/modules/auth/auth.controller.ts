@@ -1,10 +1,10 @@
 import { Body, Controller, Post, HttpCode, HttpStatus, Res, Next, Get, Query } from '@nestjs/common';
-import { HttpMessage, HttpStatusCode } from 'src/global/globalEnum';
-import { DataResponse } from 'src/global/globalClass';
+import { HttpMessage, HttpStatusCode } from '../../global/globalEnum';
+import { DataResponse } from '../../global/globalClass';
 import { AuthService } from './auth.service';
-import { InfoLoginDto } from 'src/dto/user.dto';
+import { InfoLoginDto } from '../../dto/user.dto';
 import { NextFunction, Response } from 'express';
-import { UserLoginRes } from 'src/interface/user.interface';
+import { UserLoginRes } from '../../interface/user.interface';
 import { UserService } from '../users/user.service';
 import { JwtService } from '@nestjs/jwt';
 import { join } from 'path';

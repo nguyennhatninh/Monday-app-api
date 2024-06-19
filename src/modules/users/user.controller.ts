@@ -2,12 +2,12 @@ import { Body, Controller, Post, Res, Next, Get, UseGuards, Param, Patch, Req } 
 import { UserService } from './user.service';
 import { Response, NextFunction } from 'express';
 import { InfoRegisterDto, InfoUpdatedDto } from '../../dto/user.dto';
-import { DataResponse } from 'src/global/globalClass';
-import { HttpMessage, HttpStatusCode, Role } from 'src/global/globalEnum';
-import { AuthGuard } from 'src/guards/jwt-auth.guard';
-import { Roles } from 'src/decorators/roles.decorator';
-import { RolesGuard } from 'src/guards/roles.guard';
-import { User } from './schemas/user.schema';
+import { DataResponse } from '../../global/globalClass';
+import { HttpMessage, HttpStatusCode, Role } from '../../global/globalEnum';
+import { AuthGuard } from '../../guards/jwt-auth.guard';
+import { Roles } from '../../decorators/roles.decorator';
+import { RolesGuard } from '../../guards/roles.guard';
+import { User } from '../../schemas/user.schema';
 
 @Controller('user')
 export class UserController {

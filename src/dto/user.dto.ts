@@ -1,4 +1,4 @@
-import { Role } from 'src/global/globalEnum';
+import { Role } from '../global/globalEnum';
 
 export class InfoLoginDto {
   email: string;
