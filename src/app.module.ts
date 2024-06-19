@@ -32,7 +32,7 @@ import { join } from 'path';
         from: 'Monday App" <no-reply@example.com>'
       },
       template: {
-        dir: join(__dirname, '..', 'templates'),
+        dir: join(process.cwd(), 'templates'),
         adapter: new HandlebarsAdapter(),
         options: {
           strict: true

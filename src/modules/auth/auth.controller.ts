@@ -33,9 +33,10 @@ export class AuthController {
   @Get('verify-email')
   async verifyEmail(@Query('token') token: string, @Res() res: Response) {
     try {
-      const { email } = await this.jwtService.verify(token, { secret: process.env.JWT_SERET });
+      const { email } = await this.jwtService.verify(token, { secret: process.env.JWT_SECRET });
       await this.userService.verifyEmail(email);
-      return res.sendFile(join(__dirname, '..', 'public', 'verify-email-success.html'));
+
+      return res.sendFile(join(process.cwd(), 'public', 'verify-email-success.html'));
     } catch (error) {
       return res.status(400).send('Invalid or expired token');
     }
