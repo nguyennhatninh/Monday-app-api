@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import { HydratedDocument, Types } from 'mongoose';
 import { Role } from 'src/global/globalEnum';
 
 export type UserDocument = HydratedDocument<User>;
@@ -12,7 +12,7 @@ export class User {
   @Prop()
   name: string;
 
-  @Prop({ default: Role.User })
+  @Prop({ default: Role.USER })
   roles: Role[];
 
   @Prop()
@@ -26,6 +26,15 @@ export class User {
 
   @Prop()
   avatar: string;
+
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Workspace' }] })
+  workspaces: Types.ObjectId[];
+
+  @Prop({ default: Date.now })
+  created_at: Date;
+
+  @Prop({ default: Date.now })
+  updated_at: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

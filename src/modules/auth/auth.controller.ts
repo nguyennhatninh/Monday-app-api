@@ -1,8 +1,9 @@
-import { Body, Controller, Post, HttpCode, HttpStatus, Res, Next, Get, Query } from '@nestjs/common';
+import { Body, Controller, Post, HttpCode, HttpStatus, Res, Next, Get, Query, Param } from '@nestjs/common';
 import { HttpMessage, HttpStatusCode } from '../../global/globalEnum';
 import { DataResponse } from '../../global/globalClass';
 import { AuthService } from './auth.service';
-import { InfoLoginDto } from '../../dto/user.dto';
+import { InfoLoginDto } from '../users/dto/user.dto';
+import { InfoEmailDto } from './dto/auth.dto';
 import { NextFunction, Response } from 'express';
 import { UserLoginRes } from '../../interface/user.interface';
 import { UserService } from '../users/user.service';
@@ -39,6 +40,25 @@ export class AuthController {
       return res.sendFile(join(process.cwd(), 'public', 'verify-email-success.html'));
     } catch (error) {
       return res.status(400).send('Invalid or expired token');
+    }
+  }
+  @Post('forgot-password')
+  async forgotPassword(@Body() emailInfo: InfoEmailDto, @Res() res: Response) {
+    try {
+      const data = await this.authService.sendResetLink(emailInfo.email);
+      return res.status(200).json(data);
+    } catch (e) {
+      return res.status(400).json({ message: 'Invalid email' });
+    }
+  }
+
+  @Post('reset-password/:token')
+  async resetPassword(@Param('token') token: string, @Body('newPassword') newPassword: string, @Res() res: Response) {
+    try {
+      const data = await this.authService.resetPassword(token, newPassword);
+      return res.status(200).json(data);
+    } catch (error) {
+      return res.status(400).json({ message: 'Bad request' });
     }
   }
 
