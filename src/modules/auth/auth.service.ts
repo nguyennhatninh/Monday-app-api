@@ -1,19 +1,23 @@
+import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
+import { InjectModel } from '@nestjs/mongoose';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UserService } from '../users/user.service';
-import { UserLoginRes } from 'src/interface/user.interface';
-import { InfoLoginDto } from 'src/dto/user.dto';
-import { User } from 'src/schemas/user.shema';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { firebaseAdmin } from 'src/firebase/firebase.config';
-
+import { MailerService } from '@nestjs-modules/mailer';
+import { LoginDTO } from './dto';
+import { firebaseAdmin } from '../../firebase';
+import { User, UserDocument } from '../../schemas/user.schema';
+import { Workspace, WorkspaceDocument } from '../../schemas/workspace.schema';
+import { Table, TableDocument } from '../../schemas/table.shema';
+import { Task, TaskDocument } from '../../schemas/task.schema';
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectModel(User.name) private userModel: Model<User>,
-    private userService: UserService,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(Workspace.name) private workspaceModel: Model<WorkspaceDocument>,
+    @InjectModel(Table.name) private tableModel: Model<TableDocument>,
+    @InjectModel(Task.name) private taskModel: Model<TaskDocument>,
+    private mailerService: MailerService,
     private jwtService: JwtService
   ) {
     this.jwtService = new JwtService({
@@ -22,15 +26,15 @@ export class AuthService {
     });
   }
 
-  async login(infoLoginDto: InfoLoginDto): Promise<UserLoginRes> {
-    const user = await this.userService.findByEmail(infoLoginDto.email);
+  async login(dto: LoginDTO) {
+    const user = await this.userModel.findOne({ email: dto.email }).exec();
     if (!user) {
       throw new Error('Email not exist');
     }
-    if (!bcrypt.compareSync(infoLoginDto.password, user.password)) {
+    if (!bcrypt.compareSync(dto.password, user.password)) {
       throw new Error('Password mismatch');
     }
-    const payload = { id: user.id, username: user.name, role: user.roles };
+    const payload = { _id: user._id, username: user.name, role: user.roles };
     return {
       userInfo: user,
       access_token: await this.jwtService.signAsync(payload)
@@ -47,7 +51,7 @@ export class AuthService {
   async verifyGoogleToken(idToken: string) {
     const decodedToken = await firebaseAdmin.auth().verifyIdToken(idToken);
     const { email, name, picture } = decodedToken;
-    const user = await this.userService.findByEmail(email);
+    const user = await this.userModel.findOne({ email });
     if (!user) {
       const createdUser = await new this.userModel({
         email,
@@ -56,14 +60,89 @@ export class AuthService {
         avatar: picture.replace('=s96-c', '=s384-c')
       });
       await createdUser.save();
+      const createdWorkspace = new this.workspaceModel({
+        name: 'New Workspace',
+        owner: createdUser._id
+      });
+      await createdWorkspace.save();
+
+      for (let i = 1; i <= 2; i++) {
+        const createdTable = new this.tableModel({
+          name: `Table Title ${i}`,
+          workspace: createdWorkspace._id
+        });
+        await createdTable.save();
+
+        const createdTask = new this.taskModel({
+          name: 'New Task',
+          table: createdTable._id
+        });
+        await createdTask.save();
+        createdWorkspace.tables.push(createdTable._id);
+        await createdWorkspace.save();
+
+        createdTable.tasks = [createdTask._id];
+        await createdTable.save();
+      }
+
+      createdUser.workspaces = [createdWorkspace._id];
+      await createdUser.save();
       return {
-        access_token: await this.jwtService.signAsync({ sub: createdUser.id, username: createdUser.name, role: ['user'] })
+        userInfo: createdUser,
+        access_token: await this.jwtService.signAsync({
+          id: createdUser._id,
+          username: createdUser.name,
+          role: ['user']
+        })
       };
     }
-    const payload = { id: user.id, username: user.name, role: user.roles };
+    const payload = { _id: user._id, username: user.name, role: user.roles };
     return {
       userInfo: user,
       access_token: await this.jwtService.signAsync(payload)
     };
+  }
+
+  async sendResetLink(email: string) {
+    const user = await this.userModel.findOne({ email: email }).exec();
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const token = await this.jwtService.signAsync({ id: user._id });
+
+    const resetLink = `${process.env.URL_CLIENT}/resetPassword/${token}`;
+    const logoUrl = 'https://cdn.monday.com/images/logos/monday_logo_icon.png';
+
+    await this.mailerService.sendMail({
+      to: email,
+      subject: 'Password Reset Link',
+      template: './reset-password',
+      context: {
+        resetLink,
+        logoUrl
+      }
+    });
+
+    return 'Reset link sent to email';
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    const payload = await this.jwtService.verifyAsync(token, {
+      secret: process.env.JWT_SECRET
+    });
+
+    const user = await this.userModel.findById(payload.id).exec();
+    const userId = user._id.toString();
+    if (!user) {
+      throw new Error('Invalid token');
+    }
+    const salt = await bcrypt.genSalt();
+    const hash = await bcrypt.hash(newPassword, salt);
+    await this.userModel.findByIdAndUpdate(userId, {
+      password: hash
+    });
+
+    return 'Password reset successfully';
   }
 }

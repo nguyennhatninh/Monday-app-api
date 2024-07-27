@@ -1,37 +1,72 @@
+import mongoose, { Model } from 'mongoose';
+import * as bcrypt from 'bcrypt';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { InfoRegisterDto } from 'src/dto/user.dto';
-import { User } from 'src/schemas/user.shema';
-import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { MailerService } from '@nestjs-modules/mailer';
+import { RegisterUserDTO, UpdateUserDTO } from './dto';
+import { User } from '../../schemas/user.schema';
+import { Workspace } from '../../schemas/workspace.schema';
+import { Table } from '../../schemas/table.shema';
+import { Task } from '../../schemas/task.schema';
+import { BaseService } from '../../common/helper';
 
 @Injectable()
-export class UserService {
+export class UserService extends BaseService<User, RegisterUserDTO, UpdateUserDTO> {
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
+    @InjectModel(Workspace.name) private workspaceModel: Model<Workspace>,
+    @InjectModel(Table.name) private readonly tableModel: Model<Table>,
+    @InjectModel(Task.name) private readonly taskModel: Model<Task>,
     private jwtService: JwtService,
     private mailerService: MailerService
   ) {
+    super(userModel);
     this.jwtService = new JwtService({
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: process.env.TOKEN_EXPIRE }
     });
   }
 
-  async create(infoRegisterDto: InfoRegisterDto): Promise<User> {
-    if (await this.userModel.findOne({ email: infoRegisterDto.email }).exec()) {
+  async createUser(dto: RegisterUserDTO): Promise<User> {
+    if (await this.userModel.findOne({ email: dto.email }).exec()) {
       throw new Error('Email already exists');
     }
     const salt = await bcrypt.genSalt();
-    const hash = await bcrypt.hash(infoRegisterDto.password, salt);
-    const createdUser = await new this.userModel({
-      ...infoRegisterDto,
+    const hash = await bcrypt.hash(dto.password, salt);
+
+    const createdUser = new this.userModel({
+      ...dto,
       password: hash
     });
     await createdUser.save();
     this.sendVerificationEmail(createdUser.email);
+    const createdWorkspace = new this.workspaceModel({
+      name: 'New Workspace',
+      owner: createdUser._id
+    });
+    await createdWorkspace.save();
+
+    const createdTable = new this.tableModel({
+      name: 'New Table',
+      workspace: createdWorkspace._id
+    });
+    await createdTable.save();
+
+    const createdTask = new this.taskModel({
+      name: 'New Task',
+      table: createdTable._id
+    });
+    await createdTask.save();
+
+    createdWorkspace.tables = [createdTable._id];
+    await createdWorkspace.save();
+
+    createdTable.tasks = [createdTask._id];
+    await createdTable.save();
+
+    createdUser.workspaces = [createdWorkspace._id];
+    await createdUser.save();
     return createdUser;
   }
   async sendVerificationEmail(email: string) {
@@ -52,27 +87,15 @@ export class UserService {
   async verifyEmail(email: string) {
     await this.userModel.updateOne({ email }, { verify: true });
   }
-  async update(id: string, updateData: Partial<User>): Promise<User> {
-    if (updateData.password) {
-      const salt = await bcrypt.genSalt();
-      const hash = await bcrypt.hash(updateData.password, salt);
-      updateData.password = hash;
-    }
-    return this.userModel.findByIdAndUpdate(id, updateData, { new: true }).exec();
-  }
+
   async findByEmail(email: string): Promise<User> {
     const user = await this.userModel.findOne({ email: email }).exec();
-    if (user) {
-      user.id = user._id.toString();
-    }
     return user;
   }
-  async getAll(): Promise<User[]> {
-    const userArr = await this.userModel.find().exec();
-    return userArr;
-  }
-  async getUser(id: string): Promise<User> {
-    const user = await this.userModel.findById(id);
-    return user;
+
+  async getUserWorkspaces(id: string): Promise<Workspace[]> {
+    const userId = new mongoose.Types.ObjectId(id);
+    const workspaces = await this.workspaceModel.find({ owner: userId }).exec();
+    return workspaces;
   }
 }
