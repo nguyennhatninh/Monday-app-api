@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { MongooseModule } from '@nestjs/mongoose';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { UserModule } from '../users/user.module';
-import { JwtService } from '@nestjs/jwt';
-import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from '../../schemas/user.schema';
 import { Workspace, WorkspaceSchema } from '../../schemas/workspace.schema';
 import { Table, TableSchema } from '../../schemas/table.shema';

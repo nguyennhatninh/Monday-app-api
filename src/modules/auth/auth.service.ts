@@ -3,17 +3,13 @@ import * as bcrypt from 'bcrypt';
 import { InjectModel } from '@nestjs/mongoose';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UserService } from '../users/user.service';
-import { firebaseAdmin } from '../../firebase/firebase.config';
-import { UserLoginRes } from '../../interface/user.interface';
-import { InfoLoginDto } from '../users/dto/user.dto';
+import { MailerService } from '@nestjs-modules/mailer';
+import { LoginDTO } from './dto';
+import { firebaseAdmin } from '../../firebase';
 import { User, UserDocument } from '../../schemas/user.schema';
 import { Workspace, WorkspaceDocument } from '../../schemas/workspace.schema';
 import { Table, TableDocument } from '../../schemas/table.shema';
 import { Task, TaskDocument } from '../../schemas/task.schema';
-import { MailerService } from '@nestjs-modules/mailer';
-import { TokenResetPasswordDto } from './dto/auth.dto';
-
 @Injectable()
 export class AuthService {
   constructor(
@@ -21,7 +17,6 @@ export class AuthService {
     @InjectModel(Workspace.name) private workspaceModel: Model<WorkspaceDocument>,
     @InjectModel(Table.name) private tableModel: Model<TableDocument>,
     @InjectModel(Task.name) private taskModel: Model<TaskDocument>,
-    private userService: UserService,
     private mailerService: MailerService,
     private jwtService: JwtService
   ) {
@@ -31,12 +26,12 @@ export class AuthService {
     });
   }
 
-  async login(infoLoginDto: InfoLoginDto): Promise<UserLoginRes> {
-    const user = await this.userModel.findOne({ email: infoLoginDto.email }).exec();
+  async login(dto: LoginDTO) {
+    const user = await this.userModel.findOne({ email: dto.email }).exec();
     if (!user) {
       throw new Error('Email not exist');
     }
-    if (!bcrypt.compareSync(infoLoginDto.password, user.password)) {
+    if (!bcrypt.compareSync(dto.password, user.password)) {
       throw new Error('Password mismatch');
     }
     const payload = { _id: user._id, username: user.name, role: user.roles };
@@ -94,10 +89,14 @@ export class AuthService {
       await createdUser.save();
       return {
         userInfo: createdUser,
-        access_token: await this.jwtService.signAsync({ id: createdUser._id, username: createdUser.name, role: ['user'] })
+        access_token: await this.jwtService.signAsync({
+          id: createdUser._id,
+          username: createdUser.name,
+          role: ['user']
+        })
       };
     }
-    const payload = { id: user._id, username: user.name, role: user.roles };
+    const payload = { _id: user._id, username: user.name, role: user.roles };
     return {
       userInfo: user,
       access_token: await this.jwtService.signAsync(payload)
@@ -125,11 +124,11 @@ export class AuthService {
       }
     });
 
-    return { message: 'Reset link sent to email' };
+    return 'Reset link sent to email';
   }
 
   async resetPassword(token: string, newPassword: string) {
-    const payload: TokenResetPasswordDto = await this.jwtService.verifyAsync(token, {
+    const payload = await this.jwtService.verifyAsync(token, {
       secret: process.env.JWT_SECRET
     });
 
@@ -138,9 +137,12 @@ export class AuthService {
     if (!user) {
       throw new Error('Invalid token');
     }
+    const salt = await bcrypt.genSalt();
+    const hash = await bcrypt.hash(newPassword, salt);
+    await this.userModel.findByIdAndUpdate(userId, {
+      password: hash
+    });
 
-    await this.userService.update(userId, { password: newPassword });
-
-    return { message: 'Password reset successfully' };
+    return 'Password reset successfully';
   }
 }

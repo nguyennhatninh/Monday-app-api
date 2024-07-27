@@ -1,23 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
+import { CreateTableDTO, UpdateTableDTO } from './dto';
 import { Table } from '../../schemas/table.shema';
 import { Task } from '../../schemas/task.schema';
-import { InfoCreateTableDto, InfoUpdateTableDto } from './dto/table.dto';
 import { Workspace } from '../../schemas/workspace.schema';
+import { BaseService } from '../../common/helper';
 
 @Injectable()
-export class TableService {
+export class TableService extends BaseService<Table, CreateTableDTO, UpdateTableDTO> {
   constructor(
     @InjectModel(Task.name) private taskModel: Model<Task>,
     @InjectModel(Table.name) private tableModel: Model<Table>,
     @InjectModel(Workspace.name) private workspaceModel: Model<Workspace>
-  ) {}
-  async getTable(id: string): Promise<Table> {
-    const table = await this.tableModel.findById(id).exec();
-    return table;
+  ) {
+    super(tableModel);
   }
-  async createTable(infoCreateTableDto: InfoCreateTableDto): Promise<Table> {
+
+  async createTable(infoCreateTableDto: CreateTableDTO): Promise<Table> {
     const workspaceId = new mongoose.Types.ObjectId(infoCreateTableDto.workspace);
     const createdTable = await this.tableModel.create({ ...infoCreateTableDto, workspace: workspaceId });
     const createdTask = await this.taskModel.create({ name: 'New Task', table: createdTable._id });
@@ -27,15 +27,12 @@ export class TableService {
     return createdTable;
   }
 
-  async updateTable(id: string, infoUpdateTableDto: InfoUpdateTableDto): Promise<Table> {
-    const updatedTable = await this.tableModel.findByIdAndUpdate(id, { $set: infoUpdateTableDto }, { new: true });
-    return updatedTable;
-  }
-
   async deleteTable(id: string): Promise<void> {
     const tableId = new mongoose.Types.ObjectId(id);
     await this.taskModel.deleteMany({ table: tableId }).exec();
-    await this.workspaceModel.findOneAndUpdate({ tables: tableId }, { $pull: { tables: tableId } }, { new: true }).exec();
+    await this.workspaceModel
+      .findOneAndUpdate({ tables: tableId }, { $pull: { tables: tableId } }, { new: true })
+      .exec();
     await this.tableModel.deleteOne({ _id: id }).exec();
   }
 

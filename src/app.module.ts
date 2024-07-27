@@ -14,6 +14,9 @@ import { TaskModule } from './modules/tasks/task.module';
 import { TableModule } from './modules/table/table.module';
 import { WorkspaceModule } from './modules/workspaces/workspace.module';
 import config from '../mongo.config';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { ResponseInterceptor } from './common/interceptors';
+import { AllExceptionsFilter } from './common/filters';
 
 @Module({
   imports: [
@@ -50,7 +53,11 @@ import config from '../mongo.config';
     })
   ],
   controllers: [AppController],
-  providers: [AppService]
+  providers: [
+    AppService,
+    { provide: APP_INTERCEPTOR, useClass: ResponseInterceptor },
+    { provide: APP_FILTER, useClass: AllExceptionsFilter }
+  ]
 })
 export class AppModule {
   constructor(@InjectConnection() private connection: Connection) {}

@@ -1,86 +1,59 @@
-import { Body, Controller, Post, Res, Next, Get, UseGuards, Param, Patch, Req } from '@nestjs/common';
+import { Body, Controller, Post, Get, Param, Patch, Req, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
-import { Response, NextFunction } from 'express';
-import { InfoRegisterDto, InfoUpdatedDto } from './dto/user.dto';
-import { DataResponse } from '../../global/globalClass';
-import { HttpMessage, HttpStatusCode, Role } from '../../global/globalEnum';
-import { AuthGuard } from '../../guards/jwt-auth.guard';
-import { Roles } from '../../decorators/roles.decorator';
-import { RolesGuard } from '../../guards/roles.guard';
+import { RegisterUserDTO, UpdateUserDTO } from './dto';
 import { User } from '../../schemas/user.schema';
 import { Workspace } from '../../schemas/workspace.schema';
+import { ApiResult, Roles } from '../../decorators';
+import { AuthGuard, RolesGuard } from '../../guards';
+import { Role } from '../../common/enum';
+import { PublicRoute } from '../../decorators/public-route.decorator';
 
+@ApiBearerAuth()
+@ApiCookieAuth()
+@ApiTags('User')
+@UseGuards(AuthGuard, RolesGuard)
+@Roles(Role.USER)
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post('register')
-  async register(@Body() infoRegisterDto: InfoRegisterDto, @Res() res: Response, @Next() next: NextFunction): Promise<void> {
-    try {
-      const user: User = await this.userService.create(infoRegisterDto);
-      res.status(HttpStatusCode.OK).json(new DataResponse(user, HttpStatusCode.OK, HttpMessage.SUCCESS));
-    } catch (e) {
-      res.json(new DataResponse<string>(e.message, HttpStatusCode.NOT_FOUND, HttpMessage.NOT_FOUND));
-      next(e);
-    }
+  @PublicRoute()
+  @ApiResult(User, 'user', 'create')
+  @Post('')
+  register(@Body() dto: RegisterUserDTO) {
+    return this.userService.createUser(dto);
   }
 
-  @UseGuards(AuthGuard, RolesGuard)
-  @Get('all')
   @Roles(Role.ADMIN)
-  async getAllUser(@Res() res: Response, @Next() next: NextFunction): Promise<void> {
-    try {
-      const userArr: User[] = await this.userService.getAll();
-      res.status(HttpStatusCode.OK).json(new DataResponse(userArr, HttpStatusCode.OK, HttpMessage.SUCCESS));
-    } catch (e) {
-      res.json(new DataResponse<null>(null, HttpStatusCode.NOT_FOUND, HttpMessage.NOT_FOUND));
-      next(e);
-    }
+  @ApiResult(User, 'user', 'getAll')
+  @Get('all')
+  getAllUser() {
+    return this.userService.findAll();
   }
 
-  @UseGuards(AuthGuard)
+  @ApiResult(User, 'user', 'getOne')
   @Get('me')
-  async getMe(@Req() req: Request, @Res() res: Response, @Next() next: NextFunction): Promise<void> {
-    const id = req['user'].id;
-    try {
-      const user: User = await this.userService.getUser(id);
-      res.status(HttpStatusCode.OK).json(new DataResponse(user, HttpStatusCode.OK, HttpMessage.SUCCESS));
-    } catch (e) {
-      res.json(new DataResponse<null>(null, HttpStatusCode.NOT_FOUND, HttpMessage.NOT_FOUND));
-      next(e);
-    }
+  getMe(@Req() req: Request) {
+    const id = req['user']._id;
+    return this.userService.findById(id);
   }
 
+  @ApiResult(Workspace, 'workspace', 'getMany')
   @Get(':id/workspaces')
-  async getUserWorkspaces(@Param('id') id: string, @Res() res: Response, @Next() next: NextFunction): Promise<void> {
-    try {
-      const workspace: Workspace[] = await this.userService.getUserWorkspaces(id);
-      res.status(HttpStatusCode.OK).json(new DataResponse(workspace, HttpStatusCode.OK, HttpMessage.SUCCESS));
-    } catch (e) {
-      res.json(new DataResponse<null>(null, HttpStatusCode.NOT_FOUND, HttpMessage.NOT_FOUND));
-      next(e);
-    }
+  getUserWorkspaces(@Param('id') id: string) {
+    return this.userService.getUserWorkspaces(id);
   }
 
-  @UseGuards(AuthGuard)
+  @ApiResult(User, 'user', 'getOne')
   @Get(':id')
-  async getUser(@Param('id') id: string, @Res() res: Response, @Next() next: NextFunction): Promise<void> {
-    try {
-      const user: User = await this.userService.getUser(id);
-      res.status(HttpStatusCode.OK).json(new DataResponse(user, HttpStatusCode.OK, HttpMessage.SUCCESS));
-    } catch (e) {
-      res.json(new DataResponse<null>(null, HttpStatusCode.NOT_FOUND, HttpMessage.NOT_FOUND));
-      next(e);
-    }
+  getUser(@Param('id') id: string) {
+    return this.userService.findById(id);
   }
+
+  @ApiResult(User, 'user', 'update')
   @Patch(':id')
-  async updated(@Body() infoUpdatedDto: InfoUpdatedDto, @Param('id') id: string, @Res() res: Response, @Next() next: NextFunction): Promise<void> {
-    try {
-      const user: User = await this.userService.update(id, infoUpdatedDto);
-      res.status(HttpStatusCode.OK).json(new DataResponse(user, HttpStatusCode.OK, HttpMessage.SUCCESS));
-    } catch (e) {
-      res.json(new DataResponse<null>(null, HttpStatusCode.NOT_FOUND, HttpMessage.NOT_FOUND));
-      next(e);
-    }
+  update(@Param('id') id: string, @Body() dto: UpdateUserDTO) {
+    return this.userService.update(id, dto);
   }
 }

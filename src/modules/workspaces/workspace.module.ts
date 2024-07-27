@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
-import { UserModule } from '../users/user.module';
 import { JwtService } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
+import { WorkspaceService } from './workspace.service';
+import { WorkspaceController } from './workspace.controller';
+import { UserModule } from '../users/user.module';
 import { Workspace, WorkspaceSchema } from '../../schemas/workspace.schema';
 import { Table, TableSchema } from '../../schemas/table.shema';
 import { Task, TaskSchema } from '../../schemas/task.schema';
-import { WorkspaceService } from './workspace.service';
-import { WorkspaceController } from './workspace.controller';
 import { User, UserSchema } from '../../schemas/user.schema';
 
 @Module({

@@ -1,30 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
-import { InfoCreateTaskDto, InfoUpdateTaskDto } from './dto/task.dto';
+import { CreateTaskDTO, UpdateTaskDTO } from './dto';
 import { Table } from '../../schemas/table.shema';
 import { Task } from '../../schemas/task.schema';
+import { BaseService } from '../../common/helper';
 
 @Injectable()
-export class TaskService {
+export class TaskService extends BaseService<Task, CreateTaskDTO, UpdateTaskDTO> {
   constructor(
     @InjectModel(Task.name) private taskModel: Model<Task>,
     @InjectModel(Table.name) private tableModel: Model<Table>
-  ) {}
-  async getTask(taskId: string): Promise<Task> {
-    const task = await this.taskModel.findById(taskId).exec();
-    return task;
-  }
-  async createTask(infoCreateTaskDto: InfoCreateTaskDto): Promise<Task> {
-    const tableId = new mongoose.Types.ObjectId(infoCreateTaskDto.table);
-    const createdTask = await this.taskModel.create({ ...infoCreateTaskDto, table: tableId });
-    await this.tableModel.updateOne({ _id: tableId }, { $push: { tasks: createdTask._id } });
-    return createdTask;
+  ) {
+    super(taskModel);
   }
 
-  async updateTask(id: string, infoUpdateTaskDto: InfoUpdateTaskDto): Promise<Task> {
-    const updatedTask = await this.taskModel.findByIdAndUpdate(id, { $set: infoUpdateTaskDto }, { new: true });
-    return updatedTask;
+  async createTask(dto: CreateTaskDTO): Promise<Task> {
+    const tableId = new mongoose.Types.ObjectId(dto.table);
+    const createdTask = await this.taskModel.create({ ...dto, table: tableId });
+    await this.tableModel.updateOne({ _id: tableId }, { $push: { tasks: createdTask._id } });
+    return createdTask;
   }
 
   async deleteTask(id: string): Promise<void> {

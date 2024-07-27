@@ -4,14 +4,15 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { JwtService } from '@nestjs/jwt';
 import { MailerService } from '@nestjs-modules/mailer';
-import { InfoRegisterDto } from './dto/user.dto';
+import { RegisterUserDTO, UpdateUserDTO } from './dto';
 import { User } from '../../schemas/user.schema';
 import { Workspace } from '../../schemas/workspace.schema';
 import { Table } from '../../schemas/table.shema';
 import { Task } from '../../schemas/task.schema';
+import { BaseService } from '../../common/helper';
 
 @Injectable()
-export class UserService {
+export class UserService extends BaseService<User, RegisterUserDTO, UpdateUserDTO> {
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Workspace.name) private workspaceModel: Model<Workspace>,
@@ -20,21 +21,22 @@ export class UserService {
     private jwtService: JwtService,
     private mailerService: MailerService
   ) {
+    super(userModel);
     this.jwtService = new JwtService({
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: process.env.TOKEN_EXPIRE }
     });
   }
 
-  async create(infoRegisterDto: InfoRegisterDto): Promise<User> {
-    if (await this.userModel.findOne({ email: infoRegisterDto.email }).exec()) {
+  async createUser(dto: RegisterUserDTO): Promise<User> {
+    if (await this.userModel.findOne({ email: dto.email }).exec()) {
       throw new Error('Email already exists');
     }
     const salt = await bcrypt.genSalt();
-    const hash = await bcrypt.hash(infoRegisterDto.password, salt);
+    const hash = await bcrypt.hash(dto.password, salt);
 
     const createdUser = new this.userModel({
-      ...infoRegisterDto,
+      ...dto,
       password: hash
     });
     await createdUser.save();
@@ -85,30 +87,12 @@ export class UserService {
   async verifyEmail(email: string) {
     await this.userModel.updateOne({ email }, { verify: true });
   }
-  async update(id: string, updateData: Partial<User>): Promise<User> {
-    if (updateData.password) {
-      const salt = await bcrypt.genSalt();
-      const hash = await bcrypt.hash(updateData.password, salt);
-      updateData.password = hash;
-    }
 
-    const updatedUser = await this.userModel.findByIdAndUpdate(id, updateData, { new: true }).exec();
-    console.log(updatedUser);
-    return updatedUser;
-  }
   async findByEmail(email: string): Promise<User> {
     const user = await this.userModel.findOne({ email: email }).exec();
     return user;
   }
-  async getAll(): Promise<User[]> {
-    const userArr = await this.userModel.find().exec();
-    return userArr;
-  }
-  async getUser(id: string): Promise<User> {
-    const userId = new mongoose.Types.ObjectId(id);
-    const user = await this.userModel.findById(userId);
-    return user;
-  }
+
   async getUserWorkspaces(id: string): Promise<Workspace[]> {
     const userId = new mongoose.Types.ObjectId(id);
     const workspaces = await this.workspaceModel.find({ owner: userId }).exec();

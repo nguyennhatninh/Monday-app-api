@@ -1,24 +1,27 @@
 import mongoose, { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Injectable } from '@nestjs/common';
+import { CreateWorkspaceDTO, UpdateWorkspaceDTO } from './dto';
 import { Workspace, WorkspaceDocument } from '../../schemas/workspace.schema';
 import { Table, TableDocument } from '../../schemas/table.shema';
 import { Task, TaskDocument } from '../../schemas/task.schema';
 import { User, UserDocument } from '../../schemas/user.schema';
-import { InfoCreateWorkspaceDto, InfoUpdateWorkspaceDto } from './dto/workspace.dto';
+import { BaseService } from '../../common/helper';
 
 @Injectable()
-export class WorkspaceService {
+export class WorkspaceService extends BaseService<Workspace, CreateWorkspaceDTO, UpdateWorkspaceDTO> {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(Workspace.name) private workspaceModel: Model<WorkspaceDocument>,
     @InjectModel(Table.name) private tableModel: Model<TableDocument>,
     @InjectModel(Task.name) private taskModel: Model<TaskDocument>
-  ) {}
-  async createWorkspace(infoCreateWorkspaceDto: InfoCreateWorkspaceDto): Promise<Workspace> {
-    const userId = new mongoose.Types.ObjectId(infoCreateWorkspaceDto.owner);
+  ) {
+    super(workspaceModel);
+  }
+  async createWorkspace(dto: CreateWorkspaceDTO): Promise<Workspace> {
+    const userId = new mongoose.Types.ObjectId(dto.owner);
     const createdWorkspace = new this.workspaceModel({
-      name: infoCreateWorkspaceDto.name,
+      name: dto.name,
       owner: userId
     });
     await createdWorkspace.save();
@@ -52,15 +55,6 @@ export class WorkspaceService {
     await this.taskModel.deleteMany({ table: { $in: tableIds } }).exec();
     await this.tableModel.deleteMany({ workspace: workspaceId }).exec();
     await this.workspaceModel.deleteOne({ _id: workspaceId }).exec();
-  }
-
-  async updateWorkspace(id: string, infoUpdateWorkspaceDto: InfoUpdateWorkspaceDto): Promise<Workspace> {
-    const updatedTable = await this.workspaceModel.findByIdAndUpdate(id, { $set: infoUpdateWorkspaceDto }, { new: true });
-    return updatedTable;
-  }
-  async getWorkspace(id: string): Promise<Workspace> {
-    const workspace = await this.workspaceModel.findById(id).exec();
-    return workspace;
   }
 
   async getWorkspaceTables(id: string): Promise<Table[]> {

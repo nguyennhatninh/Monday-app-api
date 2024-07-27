@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Table, TableSchema } from '../../schemas/table.shema';
-import { Task, TaskSchema } from '../../schemas/task.schema';
 import { TaskController } from './task.controller';
 import { TaskService } from './task.service';
+import { Table, TableSchema } from '../../schemas/table.shema';
+import { Task, TaskSchema } from '../../schemas/task.schema';
 
 @Module({
   imports: [
