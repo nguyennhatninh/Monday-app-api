@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDate, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { HydratedDocument, Types } from 'mongoose';
 import { StatusTask } from '../common/enum';
 
@@ -45,26 +45,6 @@ export class Task {
   @IsNotEmpty()
   @Prop({ type: Types.ObjectId, ref: 'Table' })
   table: Types.ObjectId;
-
-  @ApiProperty({
-    name: 'created_at',
-    type: Date,
-    description: 'The time task is created'
-  })
-  @IsNotEmpty()
-  @IsDate()
-  @Prop({ default: Date.now })
-  created_at: Date;
-
-  @ApiProperty({
-    name: 'updated_at',
-    type: Date,
-    description: 'The time task is updated'
-  })
-  @IsNotEmpty()
-  @IsDate()
-  @Prop({ default: Date.now })
-  updated_at: Date;
 }
 
 const TaskModel = SchemaFactory.createForClass(Task);

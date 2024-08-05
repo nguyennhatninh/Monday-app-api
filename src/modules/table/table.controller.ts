@@ -4,7 +4,7 @@ import { CreateTableDTO, UpdateTableDTO } from './dto';
 import { TableService } from './table.service';
 import { Table } from '../../schemas/table.shema';
 import { Task } from '../../schemas/task.schema';
-import { ApiResult } from '../../decorators';
+import { ApiResult } from '../../common/decorators';
 
 @ApiBearerAuth()
 @ApiCookieAuth()

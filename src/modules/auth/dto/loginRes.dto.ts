@@ -12,11 +12,11 @@ export class LoginResDTO {
   userInfo: User;
 
   @ApiProperty({
-    name: 'access_token',
+    name: 'accessToken',
     type: String,
     description: 'Access token'
   })
   @IsNotEmpty()
   @IsString()
-  access_token: string;
+  accessToken: string;
 }

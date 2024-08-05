@@ -4,10 +4,10 @@ import { Body, Controller, Post, Res, Get, Query, Param } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ApiBearerAuth, ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { ForgotPassDTO, GoogleTokenDTO, LoginDTO, LoginResDTO } from './dto';
+import { ForgotPassDTO, GoogleTokenDTO, LoginDTO, LoginResDTO, RefreshTokenDTO } from './dto';
 import { NewPassWordDTO } from './dto/newPass.dto';
 import { UserService } from '../users/user.service';
-import { ApiResult } from '../../decorators';
+import { ApiResult } from '../../common/decorators';
 
 @ApiBearerAuth()
 @ApiCookieAuth()
@@ -28,7 +28,7 @@ export class AuthController {
   @Get('verify-email')
   async verifyEmail(@Query('token') token: string, @Res() res: Response) {
     try {
-      const { email } = await this.jwtService.verify(token, { secret: process.env.JWT_SECRET });
+      const { email } = await this.jwtService.verify(token, { secret: process.env.ACCESS_TOKEN_SECRET });
       await this.userService.verifyEmail(email);
       return res.sendFile(join(process.cwd(), 'public', 'verify-email-success.html'));
     } catch (error) {
@@ -49,6 +49,18 @@ export class AuthController {
   @Post('login-google')
   async googleLogin(@Body() dto: GoogleTokenDTO) {
     const data = await this.authService.verifyGoogleToken(dto.idToken);
+    return data;
+  }
+
+  @Post('refresh')
+  async refreshTokens(@Body() dto: RefreshTokenDTO) {
+    const data = await this.authService.refreshToken(dto.refreshToken);
+    return data;
+  }
+
+  @Post('logout')
+  async logout(@Body() dto: RefreshTokenDTO) {
+    const data = await this.authService.deleteToken(dto.refreshToken);
     return data;
   }
 }

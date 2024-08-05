@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 import { TaskService } from './task.service';
 import { CreateTaskDTO, UpdateTaskDTO } from './dto';
 import { Task } from '../../schemas/task.schema';
-import { ApiResult } from '../../decorators';
+import { ApiResult } from '../../common/decorators';
 
 @ApiBearerAuth()
 @ApiCookieAuth()

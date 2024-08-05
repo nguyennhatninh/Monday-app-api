@@ -23,7 +23,7 @@ export class UserService extends BaseService<User, RegisterUserDTO, UpdateUserDT
   ) {
     super(userModel);
     this.jwtService = new JwtService({
-      secret: process.env.JWT_SECRET,
+      secret: process.env.ACCESS_TOKEN_SECRET,
       signOptions: { expiresIn: process.env.TOKEN_EXPIRE }
     });
   }
@@ -37,6 +37,7 @@ export class UserService extends BaseService<User, RegisterUserDTO, UpdateUserDT
 
     const createdUser = new this.userModel({
       ...dto,
+      roles: dto.roles ? dto.roles : 'user',
       password: hash
     });
     await createdUser.save();

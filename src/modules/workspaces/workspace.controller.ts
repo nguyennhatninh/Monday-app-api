@@ -4,7 +4,7 @@ import { WorkspaceService } from './workspace.service';
 import { CreateWorkspaceDTO, UpdateWorkspaceDTO } from './dto';
 import { Workspace } from '../../schemas/workspace.schema';
 import { Table } from '../../schemas/table.shema';
-import { ApiResult } from '../../decorators';
+import { ApiResult } from '../../common/decorators';
 
 @ApiBearerAuth()
 @ApiCookieAuth()

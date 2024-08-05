@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDate, IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 import { HydratedDocument, Types } from 'mongoose';
 
 export type WorkspaceDocument = HydratedDocument<Workspace>;
@@ -34,26 +34,6 @@ export class Workspace {
   @IsNotEmpty()
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Table' }] })
   tables: Types.ObjectId[];
-
-  @ApiProperty({
-    name: 'created_at',
-    type: Date,
-    description: 'The time workspace is created'
-  })
-  @IsNotEmpty()
-  @IsDate()
-  @Prop({ default: Date.now })
-  created_at: Date;
-
-  @ApiProperty({
-    name: 'updated_at',
-    type: Date,
-    description: 'The time workspace is updated'
-  })
-  @IsNotEmpty()
-  @IsDate()
-  @Prop({ default: Date.now })
-  updated_at: Date;
 }
 
 export const WorkspaceSchema = SchemaFactory.createForClass(Workspace);

@@ -75,26 +75,6 @@ export class User {
   @IsOptional()
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Workspace' }] })
   workspaces: Types.ObjectId[];
-
-  // @ApiProperty({
-  //   name: 'created_at',
-  //   type: Date,
-  //   description: 'The time user is created'
-  // })
-  // @IsNotEmpty()
-  // @IsDate()
-  // @Prop({ default: Date.now })
-  // created_at: Date;
-
-  // @ApiProperty({
-  //   name: 'updated_at',
-  //   type: Date,
-  //   description: 'The time user is updated'
-  // })
-  // @IsNotEmpty()
-  // @IsDate()
-  // @Prop({ default: Date.now })
-  // updated_at: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

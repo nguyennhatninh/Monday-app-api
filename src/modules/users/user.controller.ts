@@ -4,10 +4,10 @@ import { UserService } from './user.service';
 import { RegisterUserDTO, UpdateUserDTO } from './dto';
 import { User } from '../../schemas/user.schema';
 import { Workspace } from '../../schemas/workspace.schema';
-import { ApiResult, Roles } from '../../decorators';
-import { AuthGuard, RolesGuard } from '../../guards';
+import { ApiResult, Roles } from '../../common/decorators';
+import { AuthGuard, RolesGuard } from '../../common/guards';
 import { Role } from '../../common/enum';
-import { PublicRoute } from '../../decorators/public-route.decorator';
+import { PublicRoute } from '../../common/decorators/public-route.decorator';
 
 @ApiBearerAuth()
 @ApiCookieAuth()
