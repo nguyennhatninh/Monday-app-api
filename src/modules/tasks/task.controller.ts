@@ -1,12 +1,11 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
-import { ApiBearerAuth, ApiCookieAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { TaskService } from './task.service';
 import { CreateTaskDTO, UpdateTaskDTO } from './dto';
 import { Task } from '../../schemas/task.schema';
 import { ApiResult } from '../../common/decorators';
 
 @ApiBearerAuth()
-@ApiCookieAuth()
 @ApiTags('Task')
 @Controller('task')
 export class TaskController {

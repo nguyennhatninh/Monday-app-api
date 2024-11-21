@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { HydratedDocument, Types } from 'mongoose';
+import mongoose, { HydratedDocument, Types } from 'mongoose';
 import { StatusTask } from '../common/enum';
 
 export type TaskDocument = HydratedDocument<Task>;
@@ -24,7 +24,7 @@ export class Task {
     description: 'Deadline of the task'
   })
   @IsOptional()
-  @Prop({ default: undefined })
+  @Prop({ default: Date.now() })
   date: Date;
 
   @ApiProperty({
@@ -43,7 +43,7 @@ export class Task {
     description: 'The table contains the task'
   })
   @IsNotEmpty()
-  @Prop({ type: Types.ObjectId, ref: 'Table' })
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Table' })
   table: Types.ObjectId;
 }
 

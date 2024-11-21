@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
-import { ApiBearerAuth, ApiCookieAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CreateTableDTO, UpdateTableDTO } from './dto';
 import { TableService } from './table.service';
 import { Table } from '../../schemas/table.shema';
@@ -7,7 +7,6 @@ import { Task } from '../../schemas/task.schema';
 import { ApiResult } from '../../common/decorators';
 
 @ApiBearerAuth()
-@ApiCookieAuth()
 @ApiTags('Table')
 @Controller('table')
 export class TableController {

@@ -5,7 +5,7 @@ import { HydratedDocument, Types } from 'mongoose';
 
 export type TokenDocument = HydratedDocument<Token>;
 
-@Schema()
+@Schema({ timestamps: true })
 export class Token {
   @ApiProperty({
     name: 'token',
@@ -30,7 +30,7 @@ export class Token {
   })
   @IsNotEmpty()
   @IsDate()
-  @Prop({ default: Date.now, expires: '7d' })
+  @Prop({ default: Date.now, expires: '14d' })
   createdAt: Date;
 }
 

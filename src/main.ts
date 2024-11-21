@@ -14,7 +14,6 @@ async function bootstrap() {
     .setVersion('1.0')
     .addTag('Monday App API')
     .addBearerAuth()
-    .addCookieAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api-doc', app, document, {

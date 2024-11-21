@@ -1,27 +1,24 @@
 import mongoose, { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Injectable } from '@nestjs/common';
-import { CreateWorkspaceDTO, UpdateWorkspaceDTO } from './dto';
+import { UpdateWorkspaceDTO } from './dto';
 import { Workspace, WorkspaceDocument } from '../../schemas/workspace.schema';
 import { Table, TableDocument } from '../../schemas/table.shema';
 import { Task, TaskDocument } from '../../schemas/task.schema';
 import { User, UserDocument } from '../../schemas/user.schema';
-import { BaseService } from '../../common/helper';
 
 @Injectable()
-export class WorkspaceService extends BaseService<Workspace, CreateWorkspaceDTO, UpdateWorkspaceDTO> {
+export class WorkspaceService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(Workspace.name) private workspaceModel: Model<WorkspaceDocument>,
     @InjectModel(Table.name) private tableModel: Model<TableDocument>,
     @InjectModel(Task.name) private taskModel: Model<TaskDocument>
-  ) {
-    super(workspaceModel);
-  }
-  async createWorkspace(dto: CreateWorkspaceDTO): Promise<Workspace> {
-    const userId = new mongoose.Types.ObjectId(dto.owner);
+  ) {}
+  async createWorkspace(id: string): Promise<Workspace> {
+    const userId = new mongoose.Types.ObjectId(id);
     const createdWorkspace = new this.workspaceModel({
-      name: dto.name,
+      name: 'New Workspace',
       owner: userId
     });
     await createdWorkspace.save();
@@ -57,9 +54,28 @@ export class WorkspaceService extends BaseService<Workspace, CreateWorkspaceDTO,
     await this.workspaceModel.deleteOne({ _id: workspaceId }).exec();
   }
 
-  async getWorkspaceTables(id: string): Promise<Table[]> {
+  async getWorkspaceTasks(id: string): Promise<Table[]> {
     const workspaceId = new mongoose.Types.ObjectId(id);
-    const tables = await this.tableModel.find({ workspace: workspaceId }).exec();
+    const tables = await this.tableModel
+      .find({ workspace: workspaceId })
+      .populate({
+        path: 'tasks',
+        select: 'name date status'
+      })
+      .exec();
+
     return tables;
+  }
+
+  async findById(id: string): Promise<Workspace | null> {
+    return this.workspaceModel.findById(id).exec();
+  }
+
+  async findAll(): Promise<Workspace[]> {
+    return this.workspaceModel.find().exec();
+  }
+
+  async update(id: string, data: UpdateWorkspaceDTO): Promise<Workspace | null> {
+    return this.workspaceModel.findByIdAndUpdate(id, data, { new: true }).exec();
   }
 }

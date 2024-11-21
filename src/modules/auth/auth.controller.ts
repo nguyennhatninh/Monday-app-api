@@ -2,7 +2,7 @@ import { join } from 'path';
 import { Response } from 'express';
 import { Body, Controller, Post, Res, Get, Query, Param } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { ApiBearerAuth, ApiCookieAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { ForgotPassDTO, GoogleTokenDTO, LoginDTO, LoginResDTO, RefreshTokenDTO } from './dto';
 import { NewPassWordDTO } from './dto/newPass.dto';
@@ -10,7 +10,6 @@ import { UserService } from '../users/user.service';
 import { ApiResult } from '../../common/decorators';
 
 @ApiBearerAuth()
-@ApiCookieAuth()
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {

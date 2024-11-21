@@ -1,15 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
-import { User } from '../../../schemas/user.schema';
 
 export class LoginResDTO {
   @ApiProperty({
-    name: 'userInfo',
-    type: User,
-    description: 'Info of User'
+    name: 'refreshToken',
+    type: String,
+    description: 'Refresh token'
   })
   @IsNotEmpty()
-  userInfo: User;
+  @IsString()
+  refreshToken: string;
 
   @ApiProperty({
     name: 'accessToken',

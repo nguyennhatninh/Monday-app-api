@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
-import { HydratedDocument, Types } from 'mongoose';
+import mongoose, { HydratedDocument, Types } from 'mongoose';
 
 export type WorkspaceDocument = HydratedDocument<Workspace>;
 
@@ -23,7 +23,7 @@ export class Workspace {
     description: 'The user have the workspace'
   })
   @IsNotEmpty()
-  @Prop({ type: Types.ObjectId, ref: 'User' })
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
   owner: Types.ObjectId;
 
   @ApiProperty({
@@ -32,7 +32,7 @@ export class Workspace {
     description: 'The tables of the table'
   })
   @IsNotEmpty()
-  @Prop({ type: [{ type: Types.ObjectId, ref: 'Table' }] })
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Table' }] })
   tables: Types.ObjectId[];
 }
 

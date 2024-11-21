@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { HydratedDocument, Types } from 'mongoose';
+import mongoose, { HydratedDocument, Types } from 'mongoose';
 import { Role } from '../common/enum';
 
 export type UserDocument = HydratedDocument<User>;
@@ -73,7 +73,7 @@ export class User {
     description: 'Workspaces of user'
   })
   @IsOptional()
-  @Prop({ type: [{ type: Types.ObjectId, ref: 'Workspace' }] })
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Workspace' }] })
   workspaces: Types.ObjectId[];
 }
 
