@@ -3,6 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import mongoose, { HydratedDocument, Types } from 'mongoose';
 import { StatusTask } from '../common/enum';
+import { User } from './user.schema';
 
 export type TaskDocument = HydratedDocument<Task>;
 
@@ -27,6 +28,9 @@ export class Task {
   @Prop({ default: Date.now() })
   date: Date;
 
+  @Prop()
+  person: User | null;
+
   @ApiProperty({
     name: 'status',
     type: String,
@@ -34,7 +38,7 @@ export class Task {
   })
   @IsNotEmpty()
   @IsString()
-  @Prop({ default: StatusTask.NOTSTARTED })
+  @Prop({ default: StatusTask.NOT_STARTED })
   status: StatusTask;
 
   @ApiProperty({

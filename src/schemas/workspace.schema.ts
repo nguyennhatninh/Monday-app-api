@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsString } from 'class-validator';
 import mongoose, { HydratedDocument, Types } from 'mongoose';
 
 export type WorkspaceDocument = HydratedDocument<Workspace>;
@@ -16,6 +16,22 @@ export class Workspace {
   @IsString()
   @Prop()
   name: string;
+
+  @IsBoolean()
+  @Prop({ default: true })
+  task: boolean;
+
+  @IsBoolean()
+  @Prop({ default: true })
+  date: boolean;
+
+  @IsBoolean()
+  @Prop({ default: true })
+  person: boolean;
+
+  @IsBoolean()
+  @Prop({ default: true })
+  status: boolean;
 
   @ApiProperty({
     name: 'owner',

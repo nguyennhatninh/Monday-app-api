@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Get, Param, Patch, Delete, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Get, Param, Patch, Delete, Req, UseGuards, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { WorkspaceService } from './workspace.service';
 import { UpdateWorkspaceDTO } from './dto';
@@ -6,6 +6,7 @@ import { Workspace } from '../../schemas/workspace.schema';
 import { Table } from '../../schemas/table.shema';
 import { ApiResult } from '../../common/decorators';
 import { AuthGuard } from 'src/common/guards';
+import { QueryWorkspaceDTO } from './dto/querry-workspace.dto';
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard)
@@ -23,8 +24,8 @@ export class WorkspaceController {
 
   @ApiResult(Table, 'table', 'getMany')
   @Get(':id/tables')
-  getTableTasks(@Param('id') id: string) {
-    return this.workspaceService.getWorkspaceTasks(id);
+  getTableTasks(@Param('id') id: string, @Query() query: QueryWorkspaceDTO) {
+    return this.workspaceService.getWorkspaceTasks(id, query);
   }
 
   @ApiResult(Workspace, 'workspace', 'getOne')
