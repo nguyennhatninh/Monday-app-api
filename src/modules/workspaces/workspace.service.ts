@@ -107,6 +107,12 @@ export class WorkspaceService {
             $lt: new Date(now.setHours(24, 0, 0, 0))
           };
           break;
+        case DueDate.TOMORROW:
+          taskFilters.date = {
+            $gte: new Date(now.setHours(24, 0, 0, 0)),
+            $lt: new Date(now.setHours(48, 0, 0, 0))
+          };
+          break;
         case DueDate.THIS_WEEK:
           taskFilters.date = {
             $gte: startOfThisWeek,
