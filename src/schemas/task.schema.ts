@@ -6,6 +6,7 @@ import { StatusTask } from '../common/enum';
 import { User } from './user.schema';
 
 export type TaskDocument = HydratedDocument<Task>;
+const now = new Date();
 
 @Schema({ timestamps: true })
 export class Task {
@@ -25,7 +26,7 @@ export class Task {
     description: 'Deadline of the task'
   })
   @IsOptional()
-  @Prop({ default: Date.now() })
+  @Prop({ default: `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}` })
   date: Date;
 
   @Prop()
