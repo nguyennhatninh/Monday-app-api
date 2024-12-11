@@ -21,29 +21,40 @@ export class WorkspaceService {
     const userId = new mongoose.Types.ObjectId(id);
     const createdWorkspace = new this.workspaceModel({
       name: 'New Workspace',
-      owner: userId
+      owner: userId,
+      tables: []
     });
-    await createdWorkspace.save();
+
+    const tables = [];
+    const tasks = [];
 
     for (let i = 1; i <= 2; i++) {
-      const createdTable = new this.tableModel({
+      const tableId = new mongoose.Types.ObjectId();
+      const taskId = new mongoose.Types.ObjectId();
+
+      tables.push({
+        _id: tableId,
         name: `Table Title ${i}`,
-        workspace: createdWorkspace._id
+        workspace: createdWorkspace._id,
+        tasks: [taskId]
       });
-      await createdTable.save();
 
-      const createdTask = new this.taskModel({
+      tasks.push({
+        _id: taskId,
         name: 'New Task',
-        table: createdTable._id
+        table: tableId
       });
-      await createdTask.save();
-      createdWorkspace.tables.push(createdTable._id);
-      await createdWorkspace.save();
 
-      createdTable.tasks = [createdTask._id];
-      await createdTable.save();
+      createdWorkspace.tables.push(tableId);
     }
-    await this.userModel.updateOne({ _id: userId }, { $push: { workspaces: createdWorkspace._id } });
+
+    await Promise.all([
+      this.tableModel.insertMany(tables),
+      this.taskModel.insertMany(tasks),
+      createdWorkspace.save(),
+      this.userModel.updateOne({ _id: userId }, { $push: { workspaces: createdWorkspace._id } })
+    ]);
+
     return createdWorkspace;
   }
 
