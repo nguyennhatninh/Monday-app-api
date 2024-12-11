@@ -17,7 +17,7 @@ export class Task {
   })
   @IsNotEmpty()
   @IsString()
-  @Prop()
+  @Prop({ index: true })
   name: string;
 
   @ApiProperty({
@@ -26,7 +26,7 @@ export class Task {
     description: 'Deadline of the task'
   })
   @IsOptional()
-  @Prop({ default: `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}` })
+  @Prop({ default: `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`, index: true })
   date: Date;
 
   @Prop()
@@ -39,7 +39,7 @@ export class Task {
   })
   @IsNotEmpty()
   @IsString()
-  @Prop({ default: StatusTask.NOT_STARTED })
+  @Prop({ default: StatusTask.NOT_STARTED, index: true })
   status: StatusTask;
 
   @ApiProperty({
@@ -48,10 +48,11 @@ export class Task {
     description: 'The table contains the task'
   })
   @IsNotEmpty()
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Table' })
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Table', index: true })
   table: Types.ObjectId;
 }
 
 const TaskModel = SchemaFactory.createForClass(Task);
 
 export const TaskSchema = TaskModel;
+TaskSchema.index({ status: 1, date: 1 });

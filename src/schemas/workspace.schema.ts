@@ -39,7 +39,7 @@ export class Workspace {
     description: 'The user have the workspace'
   })
   @IsNotEmpty()
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true })
   owner: Types.ObjectId;
 
   @ApiProperty({

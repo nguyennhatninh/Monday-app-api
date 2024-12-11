@@ -23,7 +23,7 @@ export class Table {
     description: 'The workspace contains the table'
   })
   @IsNotEmpty()
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Workspace' })
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Workspace', index: true })
   workspace: Types.ObjectId;
 
   @ApiProperty({
@@ -37,3 +37,4 @@ export class Table {
 }
 
 export const TableSchema = SchemaFactory.createForClass(Table);
+TableSchema.index({ workspace: 1 });
