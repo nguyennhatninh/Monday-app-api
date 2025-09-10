@@ -1,7 +1,7 @@
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { InjectModel } from '@nestjs/mongoose';
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { MailerService } from '@nestjs-modules/mailer';
 import { LoginDTO } from './dto';
@@ -10,10 +10,20 @@ import { User, UserDocument } from '../../schemas/user.schema';
 import { Workspace, WorkspaceDocument } from '../../schemas/workspace.schema';
 import { Table, TableDocument } from '../../schemas/table.shema';
 import { Task, TaskDocument } from '../../schemas/task.schema';
+import { Token, TokenDocument } from '../../schemas/token.schema';
+import { Role } from '../../common/enum';
+
+interface JWTInfo {
+  _id: Types.ObjectId;
+  username: string;
+  role: Role;
+}
+
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(Token.name) private tokenModel: Model<TokenDocument>,
     @InjectModel(Workspace.name) private workspaceModel: Model<WorkspaceDocument>,
     @InjectModel(Table.name) private tableModel: Model<TableDocument>,
     @InjectModel(Task.name) private taskModel: Model<TaskDocument>,
@@ -21,8 +31,8 @@ export class AuthService {
     private jwtService: JwtService
   ) {
     this.jwtService = new JwtService({
-      secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: process.env.TOKEN_EXPIRE }
+      secret: process.env.ACCESS_TOKEN_SECRET,
+      signOptions: { expiresIn: process.env.ACCESS_TOKEN_EXPIRE }
     });
   }
 
@@ -35,10 +45,7 @@ export class AuthService {
       throw new Error('Password mismatch');
     }
     const payload = { _id: user._id, username: user.name, role: user.roles };
-    return {
-      userInfo: user,
-      access_token: await this.jwtService.signAsync(payload)
-    };
+    return this.generateUserToken(payload);
   }
   async validateUser(email: string, password: string): Promise<User> {
     const user = await this.userModel.findOne({ email });
@@ -87,20 +94,11 @@ export class AuthService {
 
       createdUser.workspaces = [createdWorkspace._id];
       await createdUser.save();
-      return {
-        userInfo: createdUser,
-        access_token: await this.jwtService.signAsync({
-          id: createdUser._id,
-          username: createdUser.name,
-          role: ['user']
-        })
-      };
+      const payload = { _id: createdUser._id, username: createdUser.name, role: Role.USER };
+      return this.generateUserToken(payload);
     }
     const payload = { _id: user._id, username: user.name, role: user.roles };
-    return {
-      userInfo: user,
-      access_token: await this.jwtService.signAsync(payload)
-    };
+    return this.generateUserToken(payload);
   }
 
   async sendResetLink(email: string) {
@@ -127,9 +125,39 @@ export class AuthService {
     return 'Reset link sent to email';
   }
 
+  async refreshToken(refreshToken: string) {
+    const token = await this.tokenModel.findOne({ token: refreshToken }).exec();
+    if (!token) {
+      throw new UnauthorizedException();
+    }
+    const userInfo = await this.jwtService.verifyAsync(token.token, {
+      secret: process.env.REFRESH_TOKEN_SECRET
+    });
+    const payload = { _id: userInfo._id, username: userInfo.username, role: userInfo.role };
+    const userToken = await this.generateUserToken(payload);
+    await this.deleteToken(token.token);
+    return userToken;
+  }
+
+  async generateUserToken(payload: JWTInfo) {
+    const refreshToken = await this.jwtService.signAsync(payload, {
+      secret: process.env.REFRESH_TOKEN_SECRET,
+      expiresIn: process.env.REFRESH_TOKEN_EXPIRE
+    });
+
+    await new this.tokenModel({ token: refreshToken, userId: payload._id }).save();
+    return {
+      accessToken: await this.jwtService.signAsync(payload),
+      refreshToken: refreshToken
+    };
+  }
+  async deleteToken(token: string) {
+    await this.tokenModel.deleteOne({ token: token }).exec();
+  }
+
   async resetPassword(token: string, newPassword: string) {
     const payload = await this.jwtService.verifyAsync(token, {
-      secret: process.env.JWT_SECRET
+      secret: process.env.ACCESS_TOKEN_SECRET
     });
 
     const user = await this.userModel.findById(payload.id).exec();

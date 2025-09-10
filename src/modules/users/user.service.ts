@@ -23,8 +23,8 @@ export class UserService extends BaseService<User, RegisterUserDTO, UpdateUserDT
   ) {
     super(userModel);
     this.jwtService = new JwtService({
-      secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: process.env.TOKEN_EXPIRE }
+      secret: process.env.ACCESS_TOKEN_SECRET,
+      signOptions: { expiresIn: '1d' }
     });
   }
 
@@ -37,6 +37,8 @@ export class UserService extends BaseService<User, RegisterUserDTO, UpdateUserDT
 
     const createdUser = new this.userModel({
       ...dto,
+      roles: dto.roles ? dto.roles : 'user',
+      avatar: process.env.DEFAULT_AVATAR,
       password: hash
     });
     await createdUser.save();
@@ -72,15 +74,13 @@ export class UserService extends BaseService<User, RegisterUserDTO, UpdateUserDT
   async sendVerificationEmail(email: string) {
     const token = await this.jwtService.signAsync({ email });
     const url = `${process.env.BASE_URL}/auth/verify-email?token=${token}`;
-    const logoUrl = 'https://cdn.monday.com/images/logos/monday_logo_icon.png';
 
     await this.mailerService.sendMail({
       to: email,
       subject: 'Verify your email',
       template: './verify-email',
       context: {
-        url,
-        logoUrl
+        url
       }
     });
   }
@@ -95,7 +95,13 @@ export class UserService extends BaseService<User, RegisterUserDTO, UpdateUserDT
 
   async getUserWorkspaces(id: string): Promise<Workspace[]> {
     const userId = new mongoose.Types.ObjectId(id);
-    const workspaces = await this.workspaceModel.find({ owner: userId }).exec();
+    const workspaces = await this.workspaceModel
+      .find({ owner: userId })
+      .populate({
+        path: 'tables',
+        select: 'name task date person status'
+      })
+      .exec();
     return workspaces;
   }
 }

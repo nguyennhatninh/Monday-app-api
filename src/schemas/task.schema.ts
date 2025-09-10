@@ -1,10 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDate, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { HydratedDocument, Types } from 'mongoose';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import mongoose, { HydratedDocument, Types } from 'mongoose';
 import { StatusTask } from '../common/enum';
+import { User } from './user.schema';
 
 export type TaskDocument = HydratedDocument<Task>;
+const now = new Date();
 
 @Schema({ timestamps: true })
 export class Task {
@@ -15,7 +17,7 @@ export class Task {
   })
   @IsNotEmpty()
   @IsString()
-  @Prop()
+  @Prop({ index: true })
   name: string;
 
   @ApiProperty({
@@ -24,8 +26,11 @@ export class Task {
     description: 'Deadline of the task'
   })
   @IsOptional()
-  @Prop({ default: undefined })
+  @Prop({ default: `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`, index: true })
   date: Date;
+
+  @Prop()
+  person: User | null;
 
   @ApiProperty({
     name: 'status',
@@ -34,7 +39,7 @@ export class Task {
   })
   @IsNotEmpty()
   @IsString()
-  @Prop({ default: StatusTask.NOTSTARTED })
+  @Prop({ default: StatusTask.NOT_STARTED, index: true })
   status: StatusTask;
 
   @ApiProperty({
@@ -43,30 +48,11 @@ export class Task {
     description: 'The table contains the task'
   })
   @IsNotEmpty()
-  @Prop({ type: Types.ObjectId, ref: 'Table' })
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Table', index: true })
   table: Types.ObjectId;
-
-  @ApiProperty({
-    name: 'created_at',
-    type: Date,
-    description: 'The time task is created'
-  })
-  @IsNotEmpty()
-  @IsDate()
-  @Prop({ default: Date.now })
-  created_at: Date;
-
-  @ApiProperty({
-    name: 'updated_at',
-    type: Date,
-    description: 'The time task is updated'
-  })
-  @IsNotEmpty()
-  @IsDate()
-  @Prop({ default: Date.now })
-  updated_at: Date;
 }
 
 const TaskModel = SchemaFactory.createForClass(Task);
 
 export const TaskSchema = TaskModel;
+TaskSchema.index({ status: 1, date: 1 });

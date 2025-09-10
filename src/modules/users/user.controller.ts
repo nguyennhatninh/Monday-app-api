@@ -1,16 +1,15 @@
 import { Body, Controller, Post, Get, Param, Patch, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiCookieAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { RegisterUserDTO, UpdateUserDTO } from './dto';
 import { User } from '../../schemas/user.schema';
 import { Workspace } from '../../schemas/workspace.schema';
-import { ApiResult, Roles } from '../../decorators';
-import { AuthGuard, RolesGuard } from '../../guards';
+import { ApiResult, Roles } from '../../common/decorators';
+import { AuthGuard, RolesGuard } from '../../common/guards';
 import { Role } from '../../common/enum';
-import { PublicRoute } from '../../decorators/public-route.decorator';
+import { PublicRoute } from '../../common/decorators/public-route.decorator';
 
 @ApiBearerAuth()
-@ApiCookieAuth()
 @ApiTags('User')
 @UseGuards(AuthGuard, RolesGuard)
 @Roles(Role.USER)
@@ -42,6 +41,12 @@ export class UserController {
   @ApiResult(Workspace, 'workspace', 'getMany')
   @Get(':id/workspaces')
   getUserWorkspaces(@Param('id') id: string) {
+    return this.userService.getUserWorkspaces(id);
+  }
+
+  @Get('my_workspaces')
+  getMyWorkspaces(@Req() req: Request) {
+    const id = req['user']._id;
     return this.userService.getUserWorkspaces(id);
   }
 

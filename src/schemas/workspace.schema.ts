@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDate, IsNotEmpty, IsString } from 'class-validator';
-import { HydratedDocument, Types } from 'mongoose';
+import { IsBoolean, IsNotEmpty, IsString } from 'class-validator';
+import mongoose, { HydratedDocument, Types } from 'mongoose';
 
 export type WorkspaceDocument = HydratedDocument<Workspace>;
 
@@ -17,13 +17,29 @@ export class Workspace {
   @Prop()
   name: string;
 
+  @IsBoolean()
+  @Prop({ default: true })
+  task: boolean;
+
+  @IsBoolean()
+  @Prop({ default: true })
+  date: boolean;
+
+  @IsBoolean()
+  @Prop({ default: true })
+  person: boolean;
+
+  @IsBoolean()
+  @Prop({ default: true })
+  status: boolean;
+
   @ApiProperty({
     name: 'owner',
     type: String,
     description: 'The user have the workspace'
   })
   @IsNotEmpty()
-  @Prop({ type: Types.ObjectId, ref: 'User' })
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true })
   owner: Types.ObjectId;
 
   @ApiProperty({
@@ -32,28 +48,8 @@ export class Workspace {
     description: 'The tables of the table'
   })
   @IsNotEmpty()
-  @Prop({ type: [{ type: Types.ObjectId, ref: 'Table' }] })
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Table' }] })
   tables: Types.ObjectId[];
-
-  @ApiProperty({
-    name: 'created_at',
-    type: Date,
-    description: 'The time workspace is created'
-  })
-  @IsNotEmpty()
-  @IsDate()
-  @Prop({ default: Date.now })
-  created_at: Date;
-
-  @ApiProperty({
-    name: 'updated_at',
-    type: Date,
-    description: 'The time workspace is updated'
-  })
-  @IsNotEmpty()
-  @IsDate()
-  @Prop({ default: Date.now })
-  updated_at: Date;
 }
 
 export const WorkspaceSchema = SchemaFactory.createForClass(Workspace);

@@ -17,10 +17,10 @@ export class RegisterUserDTO {
     name: 'roles',
     type: Array,
     description: 'The roles of user',
-    example: ['user']
+    example: 'user'
   })
   @IsOptional()
-  roles: Role[];
+  roles: Role;
 
   @ApiProperty({
     name: 'email',

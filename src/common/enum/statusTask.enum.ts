@@ -1,6 +1,6 @@
 export enum StatusTask {
-  NOTSTARTED = 'Not Started',
-  WORKING = 'Working on it',
-  DONE = 'Done',
-  STUCK = 'Stuck'
+  NOT_STARTED = 'not_started',
+  WORKING = 'working_on_it',
+  DONE = 'done',
+  STUCK = 'stuck'
 }

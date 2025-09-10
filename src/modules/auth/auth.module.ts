@@ -8,12 +8,14 @@ import { User, UserSchema } from '../../schemas/user.schema';
 import { Workspace, WorkspaceSchema } from '../../schemas/workspace.schema';
 import { Table, TableSchema } from '../../schemas/table.shema';
 import { Task, TaskSchema } from '../../schemas/task.schema';
+import { Token, TokenSchema } from '../../schemas/token.schema';
 
 @Module({
   imports: [
     UserModule,
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
+      { name: Token.name, schema: TokenSchema },
       { name: Workspace.name, schema: WorkspaceSchema },
       { name: Table.name, schema: TableSchema },
       { name: Task.name, schema: TaskSchema }
